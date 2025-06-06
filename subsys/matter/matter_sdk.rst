@@ -61,6 +61,11 @@ It defines an API for initializing Matter stack and its main features.
     │   ├── FabricTableDelegate.h
     │   ├── MatterStack.cpp
     │   └── MatterStack.h
+    │   ├── MatterUi.cpp
+    │   └──MatterUi.h
+    ├── icd
+    │   ├── icdHandler.cpp
+    │   └── icdHandler.h
     └── pwmdevice
         ├── PWMDevice.cpp
         └── PWMDevice.h
@@ -88,6 +93,8 @@ Matter samples
     │       │   ├── AppTask.h
     │       │   ├── BoardUtil.h
     │       │   └── CHIPProjectConfig.h
+    │       ├── lighting-app.matter
+    │       ├── lighting-app.zap
     │       ├── main.cpp
     │       └── ZclCallbacks.cpp
     └── light-switch
@@ -107,7 +114,10 @@ Matter samples
             │   ├── LightSwitch.h
             │   └── ShellCommands.h
             ├── LightSwitch.cpp
+            ├── light-switch-app.matter
+            ├── light-switch-app.zap
             ├── main.cpp
+            ├── ZclCallbacks.cpp
             └── ShellCommands.cpp
 
 
@@ -243,23 +253,23 @@ Commission device to Thread network over BLE
 ********************************************
 
 After flashing the sample device will activate default private thread network named as ``ot_zephyr``. The device will also activate BLE advertisement for commissioning over BLE.
-Thread and Matter commissioning is handled by Matter SDK's ``chip-tool`` which is build and added to ``PATH``.
+Thread and Matter commissioning is handled by Matter SDK's ``chip-tool`` which is build and added to ``PATH`` or ``Apple Home`` using Iphone or Ipad.
 
-Commissioning requirements
-==========================
+Commissioning requirements for chip-tool
+========================================
+
 ``chip-tool`` commissioning over BLE to Thread network command API:
 
 .. code-block:: console
 
-    $ chip-tool pairing ble-thread <node_id> hex:<operational_dataset> <pin_code> <discriminator>
+    $ chip-tool pairing code-thread <node_id> hex:<operational_dataset> <payloa_or_paircoded> --bypass-attestation-verifier true
 
 
 Before start process we need to know the following parameters:
 
 * ``node_id``: Device Node identfier given by user
 * ``operational_dataset``: Thread Border router active Dataset
-* ``pin_code``: Device BLE Setup Pincode, Default: ``20202021``
-* ``discriminator``: Device 12-bit Discriminator, Default: ``3840`` in hex: ``0xf00``
+* ``payload_or_paircode``: Device QR code payload or manual paircode
 
 How to get Thread border router active dataset
 ==============================================
@@ -276,22 +286,30 @@ Border router active data is checked by following command:
 How to get Device information:
 ==============================
 
-Matter shell has a command `matter config` to print active configuration.
-Here is an example:
+Matter shell has a command `matter onboardingcodes ble` for got onboard configuration.
+
+Light-switch sample:
 
 .. code-block::
 
-    uart:~$ matter config
-    VendorId:        65521 (0xFFF1)
-    ProductId:       32772 (0x8004)
-    HardwareVersion: 0 (0x0)
-    PinCode:         20202021
-    Discriminator:   f00
+    uart:~$ matter onboardingcodes ble
+    QRCode:            MT:4CT9142C00KA0648G00
+    QRCodeUrl:         https://project-chip.github.io/connectedhomeip/qrcode.html?data=MT%3A4CT9142C00KA0648G00
+    ManualPairingCode: 34970112332
     Done
 
+Light-bulb sample:
 
-Matter light control demo
-*************************
+.. code-block::
+
+    uart:~$ matter onboardingcodes ble
+    QRCode:            MT:6FCJ142C000O0648G00
+    QRCodeUrl:         https://project-chip.github.io/connectedhomeip/qrcode.html?data=MT%3A6FCJ142C00KA0648G00
+    ManualPairingCode: 34970212338
+    Done
+
+Matter light control demo with `chip-tool`
+******************************************
 
 Start `chip-tool` in interactive mode by the following command:
 
@@ -304,18 +322,17 @@ Interactive mode is enabled to call multiple commands without timeouts.
 Commission Matter devices
 =========================
 
-Flash the light bulb device and commission that to Thread network and use endpoint ``node_id`` 1:
+Flash the light bulb device and commission that to Thread network and use endpoint ``node_id`` 1 and QR code ``MT:6FCJ1-Q0000O0648G00``:
 
 .. code-block:: console
 
-    pairing ble-thread 1 hex:35060004001fffe00c0402a0f7f8051000112233445566778899aabbccddee00030e4f70656e54687265616444656d6f0410445f2b5ca6f2a93a55ce570a70efeecb000300001a02081111111122222222010212340708fd110022000000000e0800000003601c0000 20202021 3840
+    pairing code-thread 1 hex:35060004001fffe00c0402a0f7f8051000112233445566778899aabbccddee00030e4f70656e54687265616444656d6f0410445f2b5ca6f2a93a55ce570a70efeecb000300001a02081111111122222222010212340708fd110022000000000e0800000003601c0000 MT:6FCJ142C00KA0648G00 --bypass-attestation-verifier true
 
-Flash the light switch device and commission that to Thread network and use endpoint ``node_id`` 2:
+Flash the light switch device and commission that to Thread network and use endpoint ``node_id`` 2 and QR code ``MT:6FCJ142C00KA0648G00``:
 
 .. code-block:: console
 
-    pairing ble-thread 2 hex:35060004001fffe00c0402a0f7f8051000112233445566778899aabbccddee00030e4f70656e54687265616444656d6f0410445f2b5ca6f2a93a55ce570a70efeecb000300001a02081111111122222222010212340708fd110022000000000e0800000003601c0000 20202021 3840
-
+    pairing code-thread 2 hex:35060004001fffe00c0402a0f7f8051000112233445566778899aabbccddee00030e4f70656e54687265616444656d6f0410445f2b5ca6f2a93a55ce570a70efeecb000300001a02081111111122222222010212340708fd110022000000000e0800000003601c0000 MT:6FCJ142C00KA0648G00 --bypass-attestation-verifier true
 
 Bind the light switch to the light bulb
 =======================================
