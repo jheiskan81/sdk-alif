@@ -651,6 +651,7 @@ int main(void)
 	int res;
 
 	/* Start up bluetooth host stack */
+
 	alif_ble_enable(NULL);
 
 	if (address_verification(SAMPLE_ADDR_TYPE, &adv_type, &gapm_cfg)) {

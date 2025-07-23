@@ -6,7 +6,10 @@
  * License Agreement with this file. If not, please write to:
  * contact@alifsemi.com, or visit: https://alifsemi.com/license
  */
-
+#define HCI_UART_DMA_RX_CH  0
+#define HCI_UART_DMA_RX_REQ 26
+#define HCI_UART_DMA_TX_CH  1
+#define HCI_UART_DMA_TX_REQ 27
 
 
 &{/} {
@@ -54,4 +57,16 @@
 		pinmux = < PIN_P5_7__GPIO >;
 		driver_state_control = <1>;
 	};
+};
+
+&dma2 {
+	status = "okay";
+
+};
+
+/* Group0 is used so no EVTRTR2 configuartion needed */
+&uart_hci {
+	dmas = <&dma2 HCI_UART_DMA_RX_CH HCI_UART_DMA_RX_REQ>,
+	       <&dma2 HCI_UART_DMA_TX_CH HCI_UART_DMA_TX_REQ>;
+	dma-names = "rx", "tx";
 };
